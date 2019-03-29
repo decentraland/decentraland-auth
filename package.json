@@ -1,16 +1,21 @@
 {
   "name": "decentraland-auth",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
   "main": "build/index.js",
   "typings": "build/index.d.ts",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc && decentraland-compiler build.json",
+    "watch": "tsc --watch & decentraland-compiler build.json --watch"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/jsonwebtoken": "^8.3.2",
+    "decentraland-auth-protocol": "^0.1.2",
+    "fp-future": "^1.0.1",
+    "jsonwebtoken": "^8.5.1",
     "typescript": "^3.3.4000"
   },
   "prettier": {
@@ -20,6 +25,7 @@
   },
   "devDependencies": {
     "dcl-tslint-config-standard": "^1.1.0",
+    "decentraland-rpc": "^3.1.5",
     "tslint": "^5.14.0",
     "tslint-language-service": "^0.9.9"
   }
