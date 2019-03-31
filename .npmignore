@@ -1,1 +1,8 @@
 src
+public
+.vscode
+tsconfig.json
+tslint.json
+webpack.config.json
+.npmignore
+.gitignore
