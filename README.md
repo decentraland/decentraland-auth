@@ -37,7 +37,7 @@ const accessToken = await auth.getToken() // returns a valid access token
 
 - `auth.logout()`: It returns a promise that resolves once the user is logged out. After using this, the next time the `login()` method is called it will prompt the user with the login flow.
 
-- `auth.isLoggedIn`: Returns a boolean telling wheter the user is logged in or not.
+- `auth.isLoggedIn()`: Returns a boolean telling wheter the user is logged in or not.
 
 - `auth.getUserToken()`: It returns a promise that resolves to the `userToken`. This token is the one used to generate the `accessToken`(s).
 
