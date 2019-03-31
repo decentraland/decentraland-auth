@@ -1,8 +1,0 @@
-[
-  {
-    "name": "Compile test",
-    "kind": "Webpack",
-    "file": "./test/test.ts",
-    "target": "web"
-  }
-]

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Webpack DevServer</title>
+  </head>
+  <body>
+    <button onclick="login()">Login (Popup)</button>
+    <button onclick="login(document.getElementById('login-container'))">
+      Login (iFrame)
+    </button>
+    <button onclick="logout()">Logout</button>
+    <div style="width: 400px; height:400px;" id="login-container"></div>
+    <div id="output"></div>
+  </body>
+</html>
