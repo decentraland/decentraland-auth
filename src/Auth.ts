@@ -50,13 +50,11 @@ export class Auth {
       this.userToken = userToken
       localStorage.setItem(LOCAL_STORAGE_KEY, this.userToken)
     }
-    const token = await this.getToken()
+    await this.getToken()
 
     if (this.options.keepAlive) {
       this.keepAlive().catch() // keepAlive() can recover itself
     }
-
-    return token
   }
 
   isLoggedIn() {

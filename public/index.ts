@@ -4,7 +4,8 @@ const auth = new Auth()
 
 // @ts-ignore
 window.login = async function login(target) {
-  const accessToken = await auth.login(target)
+  await auth.login(target)
+  const accessToken = await auth.getToken()
   print(`Access Token: ${accessToken}`)
 }
 
