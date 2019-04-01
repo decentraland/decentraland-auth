@@ -31,6 +31,14 @@ const accessToken = await auth.getToken() // returns a valid access token
 
   - `ephemeralKeyTTL`: Time to live for the ephemeral key (in seconds). Default value is `60 * 60 * 2` (2 hours).
 
+  - `api`: An object with options for the underlying `API` instance:
+
+    - `baseURL`: The base url of the `auth-service`. Default value is `http://localhost:9091/api/v1`.
+
+    - `loginCallback`: The login callback url. It defaults to `/callback`.
+
+    - `logoutCallback`: The logout callback url. It defaults to `/`.
+
 - `auth.login([target])`: Returns a promise that will resolve once the user is logged in. The first time it's called it will prompt the user to login though a Popup. If a `target` dom node is provided, instead of a Popup it will insert an iframe inside the target node and use that. If the user closes the Popup the promise will reject. If the user session is still active this method might resolve without having to open a popup.
 
 - `auth.getToken()`: It returns an access token. This access token has a short life so it is recommended to get a new token every time you need to use is instead of storing it.
