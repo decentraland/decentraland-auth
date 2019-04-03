@@ -33,7 +33,7 @@ const accessToken = await auth.getToken() // returns a valid access token
 
   - `api`: An object with options for the underlying `API` instance:
 
-    - `baseURL`: The base url of the `auth-service`. Default value is `http://localhost:9091/api/v1`.
+    - `baseURL`: The base url of the `auth-service`. Default value is `https://auth.decentraland.zone/api/v1`.
 
     - `loginCallback`: The login callback url. It defaults to `/callback`.
 

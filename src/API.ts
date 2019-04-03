@@ -6,7 +6,7 @@ export type APIOptions = {
 
 export class API {
   static defaultOptions: APIOptions = {
-    baseURL: 'http://localhost:9091/api/v1',
+    baseURL: 'https://auth.decentraland.zone/api/v1',
     loginCallback: '/callback',
     logoutCallback: '/'
   }
