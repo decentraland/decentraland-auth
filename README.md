@@ -28,6 +28,7 @@ With the `accessToken` and the `userKey` you should be able to send a signed req
 
 ```ts
 const AuthModule =  require('decentraland-auth-protocol')
+const Buffer = require('buffer/').Buffer
 
 let accessToken = await auth.getToken()
 const userKey = auth.getUserKey()
