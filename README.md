@@ -19,7 +19,49 @@ const auth = new Auth()
 await auth.login() // prompts the user to login
 
 const accessToken = await auth.getToken() // returns a valid access token
+const userKey = auth.getUserKey() // returns the key used to get the token
 ```
+
+#### Send signed request
+
+With the `accessToken` and the `userKey` you should be able to send a signed request to the service provider you are trying to reach.
+
+```ts
+const AuthModule =  require('decentraland-auth-protocol')
+const Buffer = require('buffer/').Buffer //To use buffer from the browser
+
+let accessToken = await auth.getToken()
+const userKey = auth.getUserKey()
+const fullURL = 'https://theService.com/path/param/?query=something'
+
+// GET request example
+const input = AuthModule.MessageInput.fromHttpRequest("GET", fullURL, null)
+  
+let requestMandatoryHeaders = userKey.makeMessageCredentials(input, accessToken)
+
+const response = await fetch(fullURL, {
+    method: 'get',
+    headers: requestMandatoryHeaders
+  })
+
+// POST request example
+accessToken = await auth.getToken()
+const body = Buffer.from(
+    JSON.stringify({ param1: 'data1', param2: 'data2' }),
+    'utf8'
+)
+
+const inputPost = AuthModule.MessageInput.fromHttpRequest("POST", fullURL, body)
+  
+requestMandatoryHeaders = userKey.makeMessageCredentials(inputPost, accessToken)
+
+let response = await fetch(fullURL, {
+    method: 'post',
+    headers: requestMandatoryHeaders,
+    body
+  })
+```
+* [Buffer Library](https://github.com/feross/buffer)
 
 ## API
 

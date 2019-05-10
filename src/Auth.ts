@@ -85,6 +85,10 @@ export class Auth {
     return this.userToken!
   }
 
+  getUserKey() {
+    return this.ephemeralKey
+  }
+
   async getToken() {
     if (this.accessToken) {
       try {
