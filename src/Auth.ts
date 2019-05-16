@@ -116,7 +116,7 @@ export class Auth {
     return accessToken
   }
 
-  async getHeaders(url: string, options?: RequestInit) {
+  async getHeaders(url: string, options: RequestInit = {}) {
     if (!this.isLoggedIn()) {
       await this.login()
     }
@@ -125,13 +125,12 @@ export class Auth {
     let body: Buffer | null = null
     let headers: Record<string, string> = {}
 
-    if (options) {
-      if (options.method) {
-        method = options.method.toLowerCase()
-      }
-      if (options.body) {
-        body = Buffer.from(options.body as string)
-      }
+    if (options.method) {
+      method = options.method.toLowerCase()
+    }
+
+    if (options.body) {
+      body = Buffer.from(options.body as string)
     }
 
     const input = MessageInput.fromHttpRequest(method, url, body)
@@ -157,9 +156,9 @@ export class Auth {
     return headers
   }
 
-  async getRequest(url: string, options?: RequestInit) {
+  async getRequest(url: string, options: RequestInit = {}) {
     let headers = await this.getHeaders(url, options)
-    if (options && options.headers) {
+    if (options.headers) {
       headers = { ...(options.headers as Record<string, string>), ...headers }
     }
 
