@@ -24,45 +24,30 @@ const { user_id } = await auth.getPayload() // returns access token payload data
 
 #### Send signed request
 
-With the `accessToken` and the `userKey` you should be able to send a signed request to the service provider you are trying to reach.
-
 ```ts
-const AuthModule = require('decentraland-auth-protocol')
-const Buffer = require('buffer/').Buffer //To use buffer from the browser
+const auth = new Auth()
+await auth.login()
 
-let accessToken = await auth.getToken()
-const userKey = auth.getUserKey()
-const fullURL = 'https://theService.com/path/param/?query=something'
-
-// GET request example
-const input = AuthModule.MessageInput.fromHttpRequest('GET', fullURL, null)
-
-let requestMandatoryHeaders = userKey.makeMessageCredentials(input, accessToken)
-
-const response = await fetch(fullURL, {
-  method: 'get',
-  headers: requestMandatoryHeaders
-})
-
-// POST request example
-accessToken = await auth.getToken()
-const body = Buffer.from(
-  JSON.stringify({ param1: 'data1', param2: 'data2' }),
-  'utf8'
+// GET
+const request = await auth.getRequest(
+  'some-service.decentraland.org/path?query=param'
 )
+const response = await fetch(request)
 
-const inputPost = AuthModule.MessageInput.fromHttpRequest('POST', fullURL, body)
-
-requestMandatoryHeaders = userKey.makeMessageCredentials(inputPost, accessToken)
-
-let response = await fetch(fullURL, {
-  method: 'post',
-  headers: requestMandatoryHeaders,
-  body
-})
+// POST
+const request = await auth.getRequest(
+  'some-service.decentraland.org/do-something',
+  {
+    method: 'post',
+    headers: {
+      'Some-Header': 'bla bla'
+    },
+    body: JSON.stringify({ param: 'asdf' })
+  }
+)
 ```
 
-- [Buffer Library](https://github.com/feross/buffer)
+This library makes use of `Buffer`, which is not present natively in the browser. There's a polyfill that is included by default by some bundlers (like webpack), but if you don't have it make sure to add it to your project: [Buffer](https://github.com/feross/buffer).
 
 ## API
 

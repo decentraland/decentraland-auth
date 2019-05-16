@@ -1,5 +1,5 @@
 import * as jwt from 'jsonwebtoken'
-import { SimpleCredential } from 'decentraland-auth-protocol'
+import { SimpleCredential, MessageInput } from 'decentraland-auth-protocol'
 
 import { Login } from './Login'
 import { API, APIOptions } from './API'
@@ -114,6 +114,61 @@ export class Auth {
     const accessToken = await this.generateAccessToken()
     this.accessToken = accessToken
     return accessToken
+  }
+
+  async getHeaders(url: string, options?: RequestInit) {
+    if (!this.isLoggedIn()) {
+      await this.login()
+    }
+
+    let method = 'GET'
+    let body: Buffer | null = null
+    let headers: Record<string, string> = {}
+
+    if (options) {
+      if (options.method) {
+        method = options.method.toLowerCase()
+      }
+      if (options.body) {
+        body = Buffer.from(options.body as string)
+      }
+    }
+
+    const input = MessageInput.fromHttpRequest(method, url, body)
+    const accessToken = await this.getToken()
+
+    // add required headers
+    const requiredHeaders = this.ephemeralKey!.makeMessageCredentials(
+      input,
+      accessToken
+    )
+
+    requiredHeaders.forEach((key, value) => (headers[key] = value))
+
+    // add optional headers
+    if (options && options.headers) {
+      const optionalHeaders = options.headers as Record<string, string>
+      headers = {
+        ...headers,
+        ...optionalHeaders
+      }
+    }
+
+    return headers
+  }
+
+  async getRequest(url: string, options?: RequestInit) {
+    let headers = await this.getHeaders(url, options)
+    if (options && options.headers) {
+      headers = { ...(options.headers as Record<string, string>), ...headers }
+    }
+
+    const request = new Request(url, {
+      ...options,
+      headers
+    })
+
+    return request
   }
 
   dispose() {
