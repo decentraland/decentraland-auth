@@ -69,9 +69,9 @@ This library makes use of `Buffer`, which is not present natively in the browser
 
 - `auth.login([target])`: Returns a promise that will resolve once the user is logged in. The first time it's called it will prompt the user to login though a Popup. If a `target` dom node is provided, instead of a Popup it will insert an iframe inside the target node and use that. If the user closes the Popup the promise will reject. If the user session is still active this method might resolve without having to open a popup.
 
-- `auth.getToken()`: It returns an access token. This access token has a short life so it is recommended to get a new token every time you need to use is instead of storing it.
+- `auth.getToken()`: It returns a promise that resolves to an access token. This access token has a short life so it is recommended to get a new token every time you need to use is instead of storing it.
 
-- `auth.getPayload()`: It returns the payload of the access token (basically the decoded JWT).
+- `auth.getPayload()`: It returns a promise that resolves to the payload of the access token (basically the decoded JWT).
 
 - `auth.logout()`: It returns a promise that resolves once the user is logged out. After using this, the next time the `login()` method is called it will prompt the user with the login flow.
 
@@ -79,6 +79,10 @@ This library makes use of `Buffer`, which is not present natively in the browser
 
 - `auth.getUserToken()`: It returns a promise that resolves to the `userToken`. This token is the one used to generate the `accessToken`(s).
 
+- `auth.getRequest(url, options?)`: It returns a promise that resolves to a `Request` object that can be used with `fetch`. It takes a URL and the same options as `fetch`.
+
+- `auth.getHeaders(url, options?)`: It returns a promise that resolves to an object containing the mandatory headers to be used in a signed request. It takes a URL and the same options as `fetch`.
+
 - `auth.getUserKey()`: Returns the instance of the ephemeral key.
 
-- `auth.dispose()`: It removes all the bindings and on this instance. It does NOT perform a logout.
+- `auth.dispose()`: It removes all the bindings on this instance. It does NOT perform a logout.
