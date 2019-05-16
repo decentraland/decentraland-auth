@@ -89,6 +89,18 @@ export class Auth {
     return this.ephemeralKey
   }
 
+  /**
+   * Returns the user data of the JWT decoded payload
+   */
+  async getPayload() {
+    if (!this.isLoggedIn()) {
+      await this.login()
+    }
+
+    const payload = jwt.decode(this.accessToken!)
+    return payload
+  }
+
   async getToken() {
     if (this.accessToken) {
       try {
