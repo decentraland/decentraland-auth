@@ -19,7 +19,7 @@ const auth = new Auth()
 await auth.login() // prompts the user to login
 
 const accessToken = await auth.getToken() // returns a valid access token
-const userKey = auth.getUserKey() // returns the key used to get the token
+const { user_id } = await auth.getPayload() // returns access token payload data
 ```
 
 #### Send signed request
@@ -27,7 +27,7 @@ const userKey = auth.getUserKey() // returns the key used to get the token
 With the `accessToken` and the `userKey` you should be able to send a signed request to the service provider you are trying to reach.
 
 ```ts
-const AuthModule =  require('decentraland-auth-protocol')
+const AuthModule = require('decentraland-auth-protocol')
 const Buffer = require('buffer/').Buffer //To use buffer from the browser
 
 let accessToken = await auth.getToken()
@@ -35,33 +35,34 @@ const userKey = auth.getUserKey()
 const fullURL = 'https://theService.com/path/param/?query=something'
 
 // GET request example
-const input = AuthModule.MessageInput.fromHttpRequest("GET", fullURL, null)
-  
+const input = AuthModule.MessageInput.fromHttpRequest('GET', fullURL, null)
+
 let requestMandatoryHeaders = userKey.makeMessageCredentials(input, accessToken)
 
 const response = await fetch(fullURL, {
-    method: 'get',
-    headers: requestMandatoryHeaders
-  })
+  method: 'get',
+  headers: requestMandatoryHeaders
+})
 
 // POST request example
 accessToken = await auth.getToken()
 const body = Buffer.from(
-    JSON.stringify({ param1: 'data1', param2: 'data2' }),
-    'utf8'
+  JSON.stringify({ param1: 'data1', param2: 'data2' }),
+  'utf8'
 )
 
-const inputPost = AuthModule.MessageInput.fromHttpRequest("POST", fullURL, body)
-  
+const inputPost = AuthModule.MessageInput.fromHttpRequest('POST', fullURL, body)
+
 requestMandatoryHeaders = userKey.makeMessageCredentials(inputPost, accessToken)
 
 let response = await fetch(fullURL, {
-    method: 'post',
-    headers: requestMandatoryHeaders,
-    body
-  })
+  method: 'post',
+  headers: requestMandatoryHeaders,
+  body
+})
 ```
-* [Buffer Library](https://github.com/feross/buffer)
+
+- [Buffer Library](https://github.com/feross/buffer)
 
 ## API
 
@@ -85,10 +86,14 @@ let response = await fetch(fullURL, {
 
 - `auth.getToken()`: It returns an access token. This access token has a short life so it is recommended to get a new token every time you need to use is instead of storing it.
 
+- `auth.getPayload()`: It returns the payload of the access token (basically the decoded JWT).
+
 - `auth.logout()`: It returns a promise that resolves once the user is logged out. After using this, the next time the `login()` method is called it will prompt the user with the login flow.
 
 - `auth.isLoggedIn()`: Returns a boolean telling wheter the user is logged in or not.
 
 - `auth.getUserToken()`: It returns a promise that resolves to the `userToken`. This token is the one used to generate the `accessToken`(s).
+
+- `auth.getUserKey()`: Returns the instance of the ephemeral key.
 
 - `auth.dispose()`: It removes all the bindings and on this instance. It does NOT perform a logout.
