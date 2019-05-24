@@ -1,5 +1,3 @@
-declare var window: Window
-
 function getTLD() {
   return window.location.hostname.match(/(\w+)$/)![0]
 }
