@@ -1,3 +1,5 @@
+import { getAuthURL } from './env'
+
 export type APIOptions = {
   baseURL?: string
   loginCallback?: string
@@ -6,7 +8,7 @@ export type APIOptions = {
 
 export class API {
   static defaultOptions: APIOptions = {
-    baseURL: 'https://auth.decentraland.zone/api/v1',
+    baseURL: getAuthURL(),
     loginCallback: '/callback',
     logoutCallback: '/'
   }
