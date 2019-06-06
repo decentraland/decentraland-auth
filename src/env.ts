@@ -1,9 +1,11 @@
+const knownTLDs = new Set(['org', 'today', 'zone'])
+
 function getTLD() {
   return window.location.hostname.match(/(\w+)$/)![0]
 }
 
 function isValidTLD(TLD: string) {
-  return TLD === 'org' || TLD === 'today' || TLD === 'zone'
+  return knownTLDs.has(TLD)
 }
 
 export function getAuthURL() {
