@@ -122,11 +122,11 @@ export class Auth {
     }
 
     let method = 'GET'
-    let body: Buffer | null = null
+    let body: any = null
     let headers: Record<string, string> = {}
 
     if (options.method) {
-      method = options.method.toLowerCase()
+      method = options.method.toUpperCase()
     }
 
     if (options.body) {
@@ -141,8 +141,9 @@ export class Auth {
       input,
       accessToken
     )
-
-    requiredHeaders.forEach((key, value) => (headers[key] = value))
+    for (const [key, value] of requiredHeaders.entries()) {
+      headers[key] = value
+    }
 
     // add optional headers
     if (options && options.headers) {
