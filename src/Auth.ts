@@ -1,5 +1,5 @@
 import * as jwt from 'jsonwebtoken'
-import { SimpleCredential } from 'decentraland-auth-protocol'
+import { BasicEphemeralKey, MessageInput } from 'decentraland-auth-protocol'
 
 import { Login } from './Login'
 import { API, APIOptions } from './API'
@@ -26,7 +26,7 @@ export class Auth {
   private accessToken: string | null = null
   private renewalTimeout: number | null = null
   private serverPublicKey: string | null = null
-  private ephemeralKey: SimpleCredential | null = null
+  private ephemeralKey: BasicEphemeralKey | null = null
   private loginManager: Login
 
   constructor(options: Partial<AuthOptions> = {}) {
@@ -116,13 +116,68 @@ export class Auth {
     return accessToken
   }
 
+  async getHeaders(url: string, options: RequestInit = {}) {
+    if (!this.isLoggedIn()) {
+      await this.login()
+    }
+
+    let method = 'GET'
+    let body: any = null
+    let headers: Record<string, string> = {}
+
+    if (options.method) {
+      method = options.method.toUpperCase()
+    }
+
+    if (options.body) {
+      body = Buffer.from(options.body as string)
+    }
+
+    const input = MessageInput.fromHttpRequest(method, url, body)
+    const accessToken = await this.getToken()
+
+    // add required headers
+    const requiredHeaders = this.ephemeralKey!.makeMessageCredentials(
+      input,
+      accessToken
+    )
+    for (const [key, value] of requiredHeaders.entries()) {
+      headers[key] = value
+    }
+
+    // add optional headers
+    if (options && options.headers) {
+      const optionalHeaders = options.headers as Record<string, string>
+      headers = {
+        ...headers,
+        ...optionalHeaders
+      }
+    }
+
+    return headers
+  }
+
+  async getRequest(url: string, options: RequestInit = {}) {
+    let headers = await this.getHeaders(url, options)
+    if (options.headers) {
+      headers = { ...(options.headers as Record<string, string>), ...headers }
+    }
+
+    const request = new Request(url, {
+      ...options,
+      headers
+    })
+
+    return request
+  }
+
   dispose() {
     this.loginManager.dispose()
   }
 
   private getPublicKey() {
     if (!this.ephemeralKey || this.ephemeralKey.hasExpired()) {
-      this.ephemeralKey = SimpleCredential.generateNewKey(
+      this.ephemeralKey = BasicEphemeralKey.generateNewKey(
         this.options.ephemeralKeyTTL
       )
     }

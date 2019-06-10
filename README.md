@@ -24,45 +24,31 @@ const { user_id } = await auth.getPayload() // returns access token payload data
 
 #### Send signed request
 
-With the `accessToken` and the `userKey` you should be able to send a signed request to the service provider you are trying to reach.
-
 ```ts
-const AuthModule = require('decentraland-auth-protocol')
-const Buffer = require('buffer/').Buffer //To use buffer from the browser
+const auth = new Auth()
+await auth.login()
 
-let accessToken = await auth.getToken()
-const userKey = auth.getUserKey()
-const fullURL = 'https://theService.com/path/param/?query=something'
-
-// GET request example
-const input = AuthModule.MessageInput.fromHttpRequest('GET', fullURL, null)
-
-let requestMandatoryHeaders = userKey.makeMessageCredentials(input, accessToken)
-
-const response = await fetch(fullURL, {
-  method: 'get',
-  headers: requestMandatoryHeaders
-})
-
-// POST request example
-accessToken = await auth.getToken()
-const body = Buffer.from(
-  JSON.stringify({ param1: 'data1', param2: 'data2' }),
-  'utf8'
+// GET
+const request = await auth.getRequest(
+  'some-service.decentraland.org/path?query=param'
 )
+const response = await fetch(request)
 
-const inputPost = AuthModule.MessageInput.fromHttpRequest('POST', fullURL, body)
-
-requestMandatoryHeaders = userKey.makeMessageCredentials(inputPost, accessToken)
-
-let response = await fetch(fullURL, {
-  method: 'post',
-  headers: requestMandatoryHeaders,
-  body
-})
+// POST
+const request = await auth.getRequest(
+  'some-service.decentraland.org/do-something',
+  {
+    method: 'post',
+    headers: {
+      'Some-Header': 'bla bla'
+    },
+    body: JSON.stringify({ param: 'asdf' })
+  }
+)
+const response = await fetch(request)
 ```
 
-- [Buffer Library](https://github.com/feross/buffer)
+This library makes use of `Buffer`, which is not present natively in the browser. There's a polyfill that is included by default by some bundlers (like webpack), but if you don't have it make sure to add it to your project: [Buffer](https://github.com/feross/buffer).
 
 ## API
 
@@ -84,9 +70,9 @@ let response = await fetch(fullURL, {
 
 - `auth.login([target])`: Returns a promise that will resolve once the user is logged in. The first time it's called it will prompt the user to login though a Popup. If a `target` dom node is provided, instead of a Popup it will insert an iframe inside the target node and use that. If the user closes the Popup the promise will reject. If the user session is still active this method might resolve without having to open a popup.
 
-- `auth.getToken()`: It returns an access token. This access token has a short life so it is recommended to get a new token every time you need to use is instead of storing it.
+- `auth.getToken()`: It returns a promise that resolves to an access token. This access token has a short life so it is recommended to get a new token every time you need to use is instead of storing it.
 
-- `auth.getPayload()`: It returns the payload of the access token (basically the decoded JWT).
+- `auth.getPayload()`: It returns a promise that resolves to the payload of the access token (basically the decoded JWT).
 
 - `auth.logout()`: It returns a promise that resolves once the user is logged out. After using this, the next time the `login()` method is called it will prompt the user with the login flow.
 
@@ -94,6 +80,10 @@ let response = await fetch(fullURL, {
 
 - `auth.getUserToken()`: It returns a promise that resolves to the `userToken`. This token is the one used to generate the `accessToken`(s).
 
+- `auth.getRequest(url, options?)`: It returns a promise that resolves to a `Request` object that can be used with `fetch`. It takes a URL and the same options as `fetch`.
+
+- `auth.getHeaders(url, options?)`: It returns a promise that resolves to an object containing the mandatory headers to be used in a signed request. It takes a URL and the same options as `fetch`.
+
 - `auth.getUserKey()`: Returns the instance of the ephemeral key.
 
-- `auth.dispose()`: It removes all the bindings and on this instance. It does NOT perform a logout.
+- `auth.dispose()`: It removes all the bindings on this instance. It does NOT perform a logout.
