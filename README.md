@@ -45,6 +45,7 @@ const request = await auth.getRequest(
     body: JSON.stringify({ param: 'asdf' })
   }
 )
+const response = await fetch(request)
 ```
 
 This library makes use of `Buffer`, which is not present natively in the browser. There's a polyfill that is included by default by some bundlers (like webpack), but if you don't have it make sure to add it to your project: [Buffer](https://github.com/feross/buffer).

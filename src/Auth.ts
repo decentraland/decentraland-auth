@@ -1,5 +1,5 @@
 import * as jwt from 'jsonwebtoken'
-import { SimpleCredential, MessageInput } from 'decentraland-auth-protocol'
+import { BasicEphemeralKey, MessageInput } from 'decentraland-auth-protocol'
 
 import { Login } from './Login'
 import { API, APIOptions } from './API'
@@ -26,7 +26,7 @@ export class Auth {
   private accessToken: string | null = null
   private renewalTimeout: number | null = null
   private serverPublicKey: string | null = null
-  private ephemeralKey: SimpleCredential | null = null
+  private ephemeralKey: BasicEphemeralKey | null = null
   private loginManager: Login
 
   constructor(options: Partial<AuthOptions> = {}) {
@@ -177,7 +177,7 @@ export class Auth {
 
   private getPublicKey() {
     if (!this.ephemeralKey || this.ephemeralKey.hasExpired()) {
-      this.ephemeralKey = SimpleCredential.generateNewKey(
+      this.ephemeralKey = BasicEphemeralKey.generateNewKey(
         this.options.ephemeralKeyTTL
       )
     }
