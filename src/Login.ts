@@ -96,7 +96,7 @@ export class Login {
     )
 
     // puts focus on the newWindow
-    if (window.focus) newWindow!.focus()
+    if (newWindow && newWindow.focus) newWindow.focus()
 
     this.rejectOnClose(newWindow!)
 
