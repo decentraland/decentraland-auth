@@ -64,10 +64,6 @@ This library makes use of `Buffer`, which is not present natively in the browser
 
 - `new Auth([options])`: Returns a new instance of `Auth`. It takes an optional `options` objects that can contain the following properties:
 
-  - `keepAlive`: If `true`, the instance will keep renewing the access tokens in the background to minimize the time to return a token when using the `getToken()` method. Default value is `true`.
-
-  - `renewalOffset`: If `keepAlive` is `true`, this property sets how many milliseconds prior to its expiration a token should be renewed. Default value is `2000`.
-
   - `ephemeralKeyTTL`: Time to live for the ephemeral key (in seconds). Default value is `60 * 60 * 2` (2 hours).
 
   - `api`: An object with options for the underlying `API` instance:
