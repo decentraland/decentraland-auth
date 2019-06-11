@@ -86,6 +86,11 @@ export class Auth {
   }
 
   getUserKey() {
+    if (!this.ephemeralKey || this.ephemeralKey.hasExpired()) {
+      this.ephemeralKey = BasicEphemeralKey.generateNewKey(
+        this.options.ephemeralKeyTTL
+      )
+    }
     return this.ephemeralKey
   }
 
@@ -137,7 +142,7 @@ export class Auth {
     const accessToken = await this.getToken()
 
     // add required headers
-    const requiredHeaders = this.ephemeralKey!.makeMessageCredentials(
+    const requiredHeaders = this.getUserKey().makeMessageCredentials(
       input,
       accessToken
     )
@@ -172,15 +177,11 @@ export class Auth {
   }
 
   async getMessageCredentials(message: string | null) {
-
-    const msg = (message === null) ? null : Buffer.from(message)
+    const msg = message === null ? null : Buffer.from(message)
     const input = MessageInput.fromMessage(msg)
     const accessToken = await this.getToken()
 
-    return this.ephemeralKey!.makeMessageCredentials(
-      input,
-      accessToken
-    )
+    return this.getUserKey().makeMessageCredentials(input, accessToken)
   }
 
   dispose() {
@@ -188,12 +189,7 @@ export class Auth {
   }
 
   private getPublicKey() {
-    if (!this.ephemeralKey || this.ephemeralKey.hasExpired()) {
-      this.ephemeralKey = BasicEphemeralKey.generateNewKey(
-        this.options.ephemeralKeyTTL
-      )
-    }
-    return this.ephemeralKey.key.publicKeyAsHexString()
+    return this.getUserKey().key.publicKeyAsHexString()
   }
 
   private async getServerPublicKey() {
