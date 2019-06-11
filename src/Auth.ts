@@ -166,7 +166,15 @@ export class Auth {
     const input = MessageInput.fromMessage(msg)
     const accessToken = await this.getToken()
 
-    return this.getUserKey().makeMessageCredentials(input, accessToken)
+    const credentials = this.getUserKey().makeMessageCredentials(input, accessToken)
+
+    let result: Record<string, string> = {}
+
+    for (const [key, value] of credentials.entries()) {
+      result[key] = value
+    }
+
+    return result
   }
 
   dispose() {
