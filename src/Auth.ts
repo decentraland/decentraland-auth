@@ -5,8 +5,6 @@ import { Login } from './Login'
 import { API, APIOptions } from './API'
 
 type AuthOptions = {
-  keepAlive: boolean
-  renewalOffset: number
   ephemeralKeyTTL: number
   api?: APIOptions
 }
@@ -15,8 +13,6 @@ const LOCAL_STORAGE_KEY = 'decentraland-auth-user-token'
 
 export class Auth {
   static defaultOptions: AuthOptions = {
-    keepAlive: true, // keep renewing tokens in the background before they expire
-    renewalOffset: 2000, // miliseconds to renew token prior to its expiration,
     ephemeralKeyTTL: 60 * 60 * 2 // TTL for the ephemeral key
   }
 
@@ -24,7 +20,6 @@ export class Auth {
   private api: API
   private userToken: string | null = null
   private accessToken: string | null = null
-  private renewalTimeout: number | null = null
   private serverPublicKey: string | null = null
   private ephemeralKey: BasicEphemeralKey | null = null
   private loginManager: Login
@@ -51,10 +46,6 @@ export class Auth {
       localStorage.setItem(LOCAL_STORAGE_KEY, this.userToken)
     }
     await this.getToken()
-
-    if (this.options.keepAlive) {
-      this.keepAlive().catch() // keepAlive() can recover itself
-    }
   }
 
   isLoggedIn() {
@@ -63,12 +54,6 @@ export class Auth {
 
   async logout() {
     await this.loginManager.logout()
-
-    // stop keeping alive
-    if (this.renewalTimeout) {
-      window.clearTimeout(this.renewalTimeout)
-      this.renewalTimeout = null
-    }
 
     // remove from local storage
     localStorage.removeItem(LOCAL_STORAGE_KEY)
@@ -199,31 +184,6 @@ export class Auth {
     const serverPublicKey = await this.api.pubKey()
     this.serverPublicKey = serverPublicKey
     return serverPublicKey
-  }
-
-  private async keepAlive(errorDelay = 250): Promise<void> {
-    if (this.isLoggedIn()) {
-      try {
-        const token = await this.getToken()
-        const decoded = jwt.decode(token) as { exp: number }
-        const timeout = Math.max(
-          decoded.exp * 1000 - Date.now() - this.options.renewalOffset,
-          0
-        )
-
-        if (this.renewalTimeout) {
-          window.clearTimeout(this.renewalTimeout)
-        }
-        this.renewalTimeout = window.setTimeout(async () => {
-          this.accessToken = await this.generateAccessToken()
-          this.keepAlive().catch()
-        }, timeout)
-      } catch (e) {
-        console.error('Error generating access token:', e.message)
-        await new Promise(resolve => setTimeout(resolve, errorDelay)) // sleep
-        return this.keepAlive(errorDelay * 1.5)
-      }
-    }
   }
 
   private async generateAccessToken(): Promise<string> {
