@@ -47,6 +47,16 @@ const request = await auth.getRequest(
 )
 const response = await fetch(request)
 ```
+#### Generate credentials for message
+
+```ts
+const auth = new Auth()
+await auth.login()
+
+const msg  = "hi there!" // it could also be a null
+
+const credentials = await auth.getMessageCredentials(msg)
+```
 
 This library makes use of `Buffer`, which is not present natively in the browser. There's a polyfill that is included by default by some bundlers (like webpack), but if you don't have it make sure to add it to your project: [Buffer](https://github.com/feross/buffer).
 
