@@ -98,7 +98,7 @@ export class Auth {
         jwt.verify(this.accessToken, publicKey)
         return this.accessToken
       } catch (e) {
-        // invalid token, generate a new one
+        console.log(e)
       }
     }
     const accessToken = await this.generateAccessToken()
