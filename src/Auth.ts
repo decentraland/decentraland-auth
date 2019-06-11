@@ -171,6 +171,18 @@ export class Auth {
     return request
   }
 
+  async getMessageCredentials(message: string | null) {
+
+    const msg = (message === null) ? null : Buffer.from(message)
+    const input = MessageInput.fromMessage(msg)
+    const accessToken = await this.getToken()
+
+    return this.ephemeralKey!.makeMessageCredentials(
+      input,
+      accessToken
+    )
+  }
+
   dispose() {
     this.loginManager.dispose()
   }
