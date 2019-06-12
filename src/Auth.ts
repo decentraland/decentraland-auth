@@ -69,7 +69,12 @@ export class Auth {
   }
 
   getEphemeralKey() {
-    if (!this.ephemeralKey || this.ephemeralKey.hasExpired()) {
+    if (!this.ephemeralKey) {
+      this.ephemeralKey = BasicEphemeralKey.generateNewKey(
+        this.options.ephemeralKeyTTL
+      )
+    } else if (this.ephemeralKey.hasExpired()) {
+      this.accessToken = null
       this.ephemeralKey = BasicEphemeralKey.generateNewKey(
         this.options.ephemeralKeyTTL
       )
@@ -87,13 +92,14 @@ export class Auth {
   async getAccessToken(): Promise<string> {
     if (this.accessToken) {
       try {
-        const publicKey = await this.getServerPublicKey()
-        jwt.verify(this.accessToken, publicKey)
         const tokenData = jwt.decode(this.accessToken) as AccessToken
-        if (tokenData.ephemeral_key === this.getPublicKey()) {
+        const currentPubKey = this.ephemeralKey!.key.publicKeyAsHexString()
+        if (tokenData.ephemeral_key === currentPubKey) {
+          const publicKey = await this.getServerPublicKey()
+          jwt.verify(this.accessToken, publicKey)
           return this.accessToken
         } else {
-          console.log(`TOKENS DO NOT MATCH: token: ${tokenData.ephemeral_key}  currentKey: ${this.getPublicKey()}`)
+          console.log(`Token EphKey does not match: token: ${tokenData.ephemeral_key}  currentKey: ${currentPubKey}`)
         }
       } catch (e) {
           // invalid token, generate a new one
