@@ -9,6 +9,13 @@ type AuthOptions = {
   api?: APIOptions
 }
 
+type AccessToken = {
+  ephemeral_key: string
+  exp: number
+  user_id: string
+  version: string
+}
+
 const LOCAL_STORAGE_KEY = 'decentraland-auth-user-token'
 
 export class Auth {
@@ -34,22 +41,20 @@ export class Auth {
     this.userToken = localStorage.getItem(LOCAL_STORAGE_KEY) || null
   }
 
-  async login(target?: HTMLElement) {
-    if (!this.isLoggedIn()) {
+  // returns a user token
+  async login(target?: HTMLElement): Promise<string> {
+    if (this.userToken === null) {
       const [userToken] = await Promise.all([
         target
-          ? this.loginManager.fromIFrame(target)
-          : this.loginManager.fromPopup(),
+              ? this.loginManager.fromIFrame(target)
+              : this.loginManager.fromPopup(),
         this.getServerPublicKey()
       ])
       this.userToken = userToken
       localStorage.setItem(LOCAL_STORAGE_KEY, this.userToken)
+      return this.userToken
     }
-    await this.getToken()
-  }
-
-  isLoggedIn() {
-    return this.userToken !== null
+    return this.userToken
   }
 
   async logout() {
@@ -63,14 +68,7 @@ export class Auth {
     this.accessToken = null
   }
 
-  async getUserToken() {
-    if (!this.isLoggedIn()) {
-      await this.login()
-    }
-    return this.userToken!
-  }
-
-  getUserKey() {
+  getEphemeralKey() {
     if (!this.ephemeralKey || this.ephemeralKey.hasExpired()) {
       this.ephemeralKey = BasicEphemeralKey.generateNewKey(
         this.options.ephemeralKeyTTL
@@ -82,34 +80,44 @@ export class Auth {
   /**
    * Returns the user data of the JWT decoded payload
    */
-  async getPayload() {
-    if (!this.isLoggedIn()) {
-      await this.login()
-    }
-
-    const payload = jwt.decode(this.accessToken!)
-    return payload
+  async getAccessTokenData() {
+    return jwt.decode(await this.getAccessToken()) as AccessToken
   }
 
-  async getToken() {
+  async getAccessToken(): Promise<string> {
     if (this.accessToken) {
       try {
         const publicKey = await this.getServerPublicKey()
         jwt.verify(this.accessToken, publicKey)
-        return this.accessToken
+        const tokenData = jwt.decode(this.accessToken) as AccessToken
+        if (tokenData.ephemeral_key === this.getPublicKey()) {
+          return this.accessToken
+        } else {
+          console.log(`TOKENS DO NOT MATCH: token: ${tokenData.ephemeral_key}  currentKey: ${this.getPublicKey()}`)
+        }
       } catch (e) {
-        // invalid token, generate a new one
+          // invalid token, generate a new one
       }
     }
-    const accessToken = await this.generateAccessToken()
-    this.accessToken = accessToken
-    return accessToken
+    const userToken = await this.login()
+
+    const pubKey = this.getPublicKey()
+    try {
+      const { token } = await this.api.token({
+        userToken,
+        pubKey
+      })
+      this.accessToken = token
+      return token
+    } catch (e) {
+      console.error(e.message)
+      await this.logout()
+      throw e
+    }
   }
 
   async getHeaders(url: string, options: RequestInit = {}) {
-    if (!this.isLoggedIn()) {
-      await this.login()
-    }
+    await this.login()
 
     let method = 'GET'
     let body: any = null
@@ -124,10 +132,10 @@ export class Auth {
     }
 
     const input = MessageInput.fromHttpRequest(method, url, body)
-    const accessToken = await this.getToken()
+    const accessToken = await this.getAccessToken()
 
     // add required headers
-    const requiredHeaders = this.getUserKey().makeMessageCredentials(
+    const requiredHeaders = this.getEphemeralKey().makeMessageCredentials(
       input,
       accessToken
     )
@@ -164,9 +172,9 @@ export class Auth {
   async getMessageCredentials(message: string | null) {
     const msg = message === null ? null : Buffer.from(message)
     const input = MessageInput.fromMessage(msg)
-    const accessToken = await this.getToken()
+    const accessToken = await this.getAccessToken()
 
-    const credentials = this.getUserKey().makeMessageCredentials(input, accessToken)
+    const credentials = this.getEphemeralKey().makeMessageCredentials(input, accessToken)
 
     let result: Record<string, string> = {}
 
@@ -182,7 +190,7 @@ export class Auth {
   }
 
   private getPublicKey() {
-    return this.getUserKey().key.publicKeyAsHexString()
+    return this.getEphemeralKey().key.publicKeyAsHexString()
   }
 
   private async getServerPublicKey() {
@@ -192,22 +200,5 @@ export class Auth {
     const serverPublicKey = await this.api.pubKey()
     this.serverPublicKey = serverPublicKey
     return serverPublicKey
-  }
-
-  private async generateAccessToken(): Promise<string> {
-    const userToken = await this.getUserToken()
-    const pubKey = this.getPublicKey()
-    try {
-      const { token } = await this.api.token({
-        userToken,
-        pubKey
-      })
-      return token
-    } catch (e) {
-      console.error(e.message)
-      await this.logout()
-      await this.login()
-      return this.generateAccessToken()
-    }
   }
 }
