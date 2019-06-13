@@ -42,7 +42,7 @@ export class Auth {
   }
 
   // returns a user token
-  async login(target?: HTMLElement): Promise<string> {
+  async login(target?: HTMLElement) {
     if (this.userToken === null) {
       const [userToken] = await Promise.all([
         target
@@ -68,6 +68,10 @@ export class Auth {
     this.accessToken = null
   }
 
+  isLoggedIn() {
+    return this.userToken !== null
+  }
+
   getEphemeralKey() {
     if (!this.ephemeralKey) {
       this.ephemeralKey = BasicEphemeralKey.generateNewKey(
@@ -89,7 +93,7 @@ export class Auth {
     return jwt.decode(await this.getAccessToken()) as AccessToken
   }
 
-  async getAccessToken(): Promise<string> {
+  async getAccessToken() {
     if (this.accessToken) {
       try {
         const tokenData = jwt.decode(this.accessToken) as AccessToken
