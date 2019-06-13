@@ -138,10 +138,11 @@ export class Auth {
     }
 
     const input = MessageInput.fromHttpRequest(method, url, body)
+    const ephKey = this.getEphemeralKey()
     const accessToken = await this.getAccessToken()
 
     // add required headers
-    const requiredHeaders = this.getEphemeralKey().makeMessageCredentials(
+    const requiredHeaders = ephKey.makeMessageCredentials(
       input,
       accessToken
     )
@@ -178,9 +179,10 @@ export class Auth {
   async getMessageCredentials(message: string | null) {
     const msg = message === null ? null : Buffer.from(message)
     const input = MessageInput.fromMessage(msg)
+    const ephKey = this.getEphemeralKey()
     const accessToken = await this.getAccessToken()
 
-    const credentials = this.getEphemeralKey().makeMessageCredentials(input, accessToken)
+    const credentials = ephKey.makeMessageCredentials(input, accessToken)
 
     let result: Record<string, string> = {}
 

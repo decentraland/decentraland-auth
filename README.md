@@ -18,8 +18,8 @@ import { Auth } from 'decentraland-auth'
 const auth = new Auth()
 await auth.login() // prompts the user to login
 
-const accessToken = await auth.getToken() // returns a valid access token
-const { user_id } = await auth.getPayload() // returns access token payload data
+const accessToken = await auth.getAccessToken() // returns a valid access token
+const { user_id } = await auth.getAccessTokenData() // returns access token payload data
 ```
 
 #### Send signed request
@@ -76,13 +76,11 @@ This library makes use of `Buffer`, which is not present natively in the browser
 
 - `auth.login([target])`: Returns a promise that will resolve once the user is logged in. The first time it's called it will prompt the user to login though a Popup. If a `target` dom node is provided, instead of a Popup it will insert an iframe inside the target node and use that. If the user closes the Popup the promise will reject. If the user session is still active this method might resolve without having to open a popup.
 
-- `auth.getToken()`: It returns a promise that resolves to an access token. This access token has a short life so it is recommended to get a new token every time you need to use is instead of storing it.
+- `auth.getAccessToken()`: It returns a promise that resolves to an access token. This access token has a short life so it is recommended to get a new token every time you need to use is instead of storing it.
 
-- `auth.getPayload()`: It returns a promise that resolves to the payload of the access token (basically the decoded JWT).
+- `auth.getAccessTokenData()`: It returns a promise that resolves to the payload of the access token (basically the decoded JWT).
 
 - `auth.logout()`: It returns a promise that resolves once the user is logged out. After using this, the next time the `login()` method is called it will prompt the user with the login flow.
-
-- `auth.isLoggedIn()`: Returns a boolean telling wheter the user is logged in or not.
 
 - `auth.getUserToken()`: It returns a promise that resolves to the `userToken`. This token is the one used to generate the `accessToken`(s).
 
