@@ -39,6 +39,9 @@ export class Auth {
     this.api = new API(this.options.api)
     this.loginManager = new Login(this.api)
     this.userToken = localStorage.getItem(LOCAL_STORAGE_KEY) || null
+    this.ephemeralKey = BasicEphemeralKey.generateNewKey(
+      this.options.ephemeralKeyTTL
+    )
   }
 
   // returns a user token
@@ -73,12 +76,7 @@ export class Auth {
   }
 
   getEphemeralKey() {
-    if (!this.ephemeralKey) {
-      this.ephemeralKey = BasicEphemeralKey.generateNewKey(
-        this.options.ephemeralKeyTTL
-      )
-    } else if (this.ephemeralKey.hasExpired()) {
-      this.accessToken = null
+    if (!this.ephemeralKey || this.ephemeralKey.hasExpired()) {
       this.ephemeralKey = BasicEphemeralKey.generateNewKey(
         this.options.ephemeralKeyTTL
       )
@@ -94,16 +92,16 @@ export class Auth {
   }
 
   async getAccessToken() {
+    const ephKey = this.getEphemeralKey()
+    const pubKey = ephKey.key.publicKeyAsHexString()
+
     if (this.accessToken) {
       try {
         const tokenData = jwt.decode(this.accessToken) as AccessToken
-        const currentPubKey = this.ephemeralKey!.key.publicKeyAsHexString()
-        if (tokenData.ephemeral_key === currentPubKey) {
+        if (tokenData.ephemeral_key === pubKey) {
           const publicKey = await this.getServerPublicKey()
           jwt.verify(this.accessToken, publicKey)
           return this.accessToken
-        } else {
-          console.log(`Token EphKey does not match: token: ${tokenData.ephemeral_key}  currentKey: ${currentPubKey}`)
         }
       } catch (e) {
           // invalid token, generate a new one
@@ -111,7 +109,6 @@ export class Auth {
     }
     const userToken = await this.login()
 
-    const pubKey = this.getPublicKey()
     try {
       const { token } = await this.api.token({
         userToken,
@@ -142,11 +139,10 @@ export class Auth {
     }
 
     const input = MessageInput.fromHttpRequest(method, url, body)
-    const ephKey = this.getEphemeralKey()
     const accessToken = await this.getAccessToken()
 
     // add required headers
-    const requiredHeaders = ephKey.makeMessageCredentials(
+    const requiredHeaders = this.getEphemeralKey().makeMessageCredentials(
       input,
       accessToken
     )
@@ -183,10 +179,9 @@ export class Auth {
   async getMessageCredentials(message: string | null) {
     const msg = message === null ? null : Buffer.from(message)
     const input = MessageInput.fromMessage(msg)
-    const ephKey = this.getEphemeralKey()
     const accessToken = await this.getAccessToken()
 
-    const credentials = ephKey.makeMessageCredentials(input, accessToken)
+    const credentials = this.getEphemeralKey().makeMessageCredentials(input, accessToken)
 
     let result: Record<string, string> = {}
 
@@ -199,10 +194,6 @@ export class Auth {
 
   dispose() {
     this.loginManager.dispose()
-  }
-
-  private getPublicKey() {
-    return this.getEphemeralKey().key.publicKeyAsHexString()
   }
 
   private async getServerPublicKey() {
