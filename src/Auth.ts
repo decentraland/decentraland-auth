@@ -49,8 +49,8 @@ export class Auth {
     if (this.userToken === null) {
       const [userToken] = await Promise.all([
         target
-              ? this.loginManager.fromIFrame(target)
-              : this.loginManager.fromPopup(),
+          ? this.loginManager.fromIFrame(target)
+          : this.loginManager.fromPopup(),
         this.getServerPublicKey()
       ])
       this.userToken = userToken
@@ -104,7 +104,7 @@ export class Auth {
           return this.accessToken
         }
       } catch (e) {
-          // invalid token, generate a new one
+        // invalid token, generate a new one
       }
     }
     const userToken = await this.login()
@@ -162,7 +162,7 @@ export class Auth {
     return headers
   }
 
-  async getRequest(url: string, options: RequestInit = {}) {
+  async buildRequest(url: string, options: RequestInit = {}): Promise<Request> {
     let headers = await this.getHeaders(url, options)
     if (options.headers) {
       headers = { ...(options.headers as Record<string, string>), ...headers }
@@ -181,7 +181,10 @@ export class Auth {
     const input = MessageInput.fromMessage(msg)
     const accessToken = await this.getAccessToken()
 
-    const credentials = this.getEphemeralKey().makeMessageCredentials(input, accessToken)
+    const credentials = this.getEphemeralKey().makeMessageCredentials(
+      input,
+      accessToken
+    )
 
     let result: Record<string, string> = {}
 
