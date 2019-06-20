@@ -162,7 +162,10 @@ export class Auth {
     return headers
   }
 
-  async buildRequest(url: string, options: RequestInit = {}): Promise<Request> {
+  async createRequest(
+    url: string,
+    options: RequestInit = {}
+  ): Promise<Request> {
     let headers = await this.getHeaders(url, options)
     if (options.headers) {
       headers = { ...(options.headers as Record<string, string>), ...headers }
