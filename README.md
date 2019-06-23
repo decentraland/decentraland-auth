@@ -29,13 +29,13 @@ const auth = new Auth()
 await auth.login()
 
 // GET
-const request = await auth.getRequest(
+const request = await auth.createRequest(
   'some-service.decentraland.org/path?query=param'
 )
 const response = await fetch(request)
 
 // POST
-const request = await auth.getRequest(
+const request = await auth.createRequest(
   'some-service.decentraland.org/do-something',
   {
     method: 'post',
@@ -86,7 +86,7 @@ This library makes use of `Buffer`, which is not present natively in the browser
 
 - `auth.getUserToken()`: It returns a promise that resolves to the `userToken`. This token is the one used to generate the `accessToken`(s).
 
-- `auth.getRequest(url, options?)`: It returns a promise that resolves to a `Request` object that can be used with `fetch`. It takes a URL and the same options as `fetch`.
+- `auth.createRequest(url, options?)`: It returns a promise that resolves to a `Request` object that can be used with `fetch`. It takes a URL and the same options as `fetch`.
 
 - `auth.getHeaders(url, options?)`: It returns a promise that resolves to an object containing the mandatory headers to be used in a signed request. It takes a URL and the same options as `fetch`.
 
