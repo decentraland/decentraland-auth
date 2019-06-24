@@ -47,13 +47,14 @@ const request = await auth.createRequest(
 )
 const response = await fetch(request)
 ```
+
 #### Generate credentials for message
 
 ```ts
 const auth = new Auth()
 const userToken = await auth.login()
 
-const msg  = "hi there!" // it could also be a null
+const msg = 'hi there!' // it could also be a null
 
 const credentials = await auth.getMessageCredentials(msg)
 ```
@@ -84,12 +85,12 @@ This library makes use of `Buffer`, which is not present natively in the browser
 
 - `auth.logout()`: It returns a promise that resolves once the user is logged out. After using this, the next time the `login()` method is called it will prompt the user with the login flow.
 
-- `auth.getUserToken()`: It returns a promise that resolves to the `userToken`. This token is the one used to generate the `accessToken`(s).
-
 - `auth.createRequest(url, options?)`: It returns a promise that resolves to a `Request` object that can be used with `fetch`. It takes a URL and the same options as `fetch`.
 
-- `auth.getHeaders(url, options?)`: It returns a promise that resolves to an object containing the mandatory headers to be used in a signed request. It takes a URL and the same options as `fetch`.
+- `auth.createHeaders(url, options?)`: It returns a promise that resolves to an object containing the mandatory headers to be used in a signed request. It takes a URL and the same options as `fetch`.
 
-- `auth.getUserKey()`: Returns the instance of the ephemeral key.
+- `auth.getUserToken()`: It returns a promise that resolves to the `userToken`. This token is the one used to generate the `accessToken`(s).
+
+- `auth.getEphemeralKey()`: Returns the instance of the ephemeral key.
 
 - `auth.dispose()`: It removes all the bindings on this instance. It does NOT perform a logout.

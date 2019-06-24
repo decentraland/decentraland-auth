@@ -123,7 +123,7 @@ export class Auth {
     }
   }
 
-  async getHeaders(url: string, options: RequestInit = {}) {
+  async createHeaders(url: string, options: RequestInit = {}) {
     await this.login()
 
     let method = 'GET'
@@ -166,7 +166,7 @@ export class Auth {
     url: string,
     options: RequestInit = {}
   ): Promise<Request> {
-    let headers = await this.getHeaders(url, options)
+    let headers = await this.createHeaders(url, options)
     if (options.headers) {
       headers = { ...(options.headers as Record<string, string>), ...headers }
     }
