@@ -174,23 +174,19 @@ export class Login {
           ) as HTMLIFrameElement
           if (loginIFrame) {
             const { loginURL } = await this.api.auth()
-            const loadPage = new Promise(
-              resolve =>
-                (loginIFrame.onload = function() {
-                  setTimeout(() => resolve(), 500)
-                })
+            const waitForPage = new Promise(
+              resolve => (loginIFrame.onload = resolve)
             )
             loginIFrame.src = loginURL
-            await loadPage
+            await waitForPage
           }
         }
-
-        if (data.error) {
-          if (data.error.errorDescription) {
-            setTimeout(() => alert(data.error.errorDescription), 500)
-          }
-          console.error(data.error)
+        let error = 'Error'
+        if (data.error && data.error.errorDescription) {
+          error = data.error.errorDescription
         }
+        this.loginFuture.reject(Object.assign(new Error(error), { data }))
+        this.loginFuture = future()
 
         break
       }
