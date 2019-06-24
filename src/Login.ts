@@ -1,7 +1,13 @@
 import { future, IFuture } from 'fp-future'
 
 import { API } from './API'
-import { USER_TOKEN_EVENT, LOGOUT_EVENT } from './Events'
+import {
+  Event,
+  Message,
+  UserTokenMessage,
+  LoginType,
+  ErrorMessage
+} from './Types'
 
 export const IFRAME_STYLE_ID = 'decentraland-auth-iframe-style'
 export const LOGIN_IFRAME_ID = 'decentraland-auth-login-iframe'
@@ -19,20 +25,10 @@ export const IFRAME_CSS = `#${LOGIN_IFRAME_ID} {
 }
 `
 
-export enum LoginType {
-  IFRAME = 'IFRAME',
-  POPUP = 'POPUP'
-}
-
-type MessageData = {
-  type: string
-  token: string
-  from: string
-}
-
 export class Login {
   api: API
   loginFuture: IFuture<string> = future()
+  logoutFuture: IFuture<void> = future()
 
   constructor(api: API = new API()) {
     this.api = api
@@ -112,6 +108,7 @@ export class Login {
       iframe.src = logoutURL
       document.body.appendChild(iframe)
     }
+    return this.logoutFuture
   }
 
   dispose() {
@@ -130,19 +127,23 @@ export class Login {
   }
 
   private handleMessage = async (event: MessageEvent) => {
-    const data: MessageData = event.data
+    const data = event.data as Message
     if (!data) return
     switch (data.type) {
-      case LOGOUT_EVENT: {
+      case Event.LOGOUT: {
         const logoutIFrame = document.getElementById(LOGOUT_IFRAME_ID)
         if (logoutIFrame) {
           logoutIFrame.remove()
         }
+        this.logoutFuture.resolve()
+        this.logoutFuture = future()
         break
       }
-      case USER_TOKEN_EVENT: {
+      case Event.USER_TOKEN: {
+        const data = event.data as UserTokenMessage
         // resolve user token
         this.loginFuture.resolve(data.token)
+        this.loginFuture = future()
 
         if (data.from === LoginType.POPUP) {
           // close popup
@@ -154,6 +155,41 @@ export class Login {
           if (loginIFrame) {
             loginIFrame.remove()
           }
+        }
+
+        break
+      }
+      case Event.ERROR: {
+        await this.logout()
+
+        const data = event.data as ErrorMessage
+        if (data.from === LoginType.POPUP) {
+          // close popup
+          const source = event.source as Window
+          source.close()
+        } else if (data.from === LoginType.IFRAME) {
+          // refresh iframe
+          const loginIFrame = document.getElementById(
+            LOGIN_IFRAME_ID
+          ) as HTMLIFrameElement
+          if (loginIFrame) {
+            const { loginURL } = await this.api.auth()
+            const loadPage = new Promise(
+              resolve =>
+                (loginIFrame.onload = function() {
+                  setTimeout(() => resolve(), 500)
+                })
+            )
+            loginIFrame.src = loginURL
+            await loadPage
+          }
+        }
+
+        if (data.error) {
+          if (data.error.errorDescription) {
+            setTimeout(() => alert(data.error.errorDescription), 500)
+          }
+          console.error(data.error)
         }
 
         break
